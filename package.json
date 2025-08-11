@@ -6,7 +6,6 @@
   "scripts": {
     "start": "bun index.js"
   },
-  "private": true,
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.2"
   }
