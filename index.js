@@ -290,6 +290,299 @@ class AFFiNEMCPServer {
                             required: ['workspaceId'],
                         },
                     },
+                    {
+                        name: 'publish_document',
+                        description: 'Publish a document to make it publicly accessible',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                docId: {
+                                    type: 'string',
+                                    description: 'Document ID to publish',
+                                },
+                                workspaceId: {
+                                    type: 'string',
+                                    description: 'Workspace ID containing the document',
+                                },
+                                mode: {
+                                    type: 'string',
+                                    enum: ['Page', 'Edgeless'],
+                                    description: 'Publishing mode (default: Page)',
+                                    default: 'Page',
+                                },
+                            },
+                            required: ['docId', 'workspaceId'],
+                        },
+                    },
+                    {
+                        name: 'unpublish_document',
+                        description: 'Revoke public access to a document',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                docId: {
+                                    type: 'string',
+                                    description: 'Document ID to unpublish',
+                                },
+                                workspaceId: {
+                                    type: 'string',
+                                    description: 'Workspace ID containing the document',
+                                },
+                            },
+                            required: ['docId', 'workspaceId'],
+                        },
+                    },
+                    {
+                        name: 'create_comment',
+                        description: 'Create a comment on a document',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                docId: {
+                                    type: 'string',
+                                    description: 'Document ID to comment on',
+                                },
+                                workspaceId: {
+                                    type: 'string',
+                                    description: 'Workspace ID containing the document',
+                                },
+                                content: {
+                                    type: 'object',
+                                    description: 'Comment content in JSON format',
+                                },
+                                docMode: {
+                                    type: 'string',
+                                    enum: ['page', 'edgeless'],
+                                    description: 'Document mode',
+                                    default: 'page',
+                                },
+                                docTitle: {
+                                    type: 'string',
+                                    description: 'Document title',
+                                },
+                                mentions: {
+                                    type: 'array',
+                                    items: { type: 'string' },
+                                    description: 'User IDs to mention in the comment',
+                                },
+                            },
+                            required: ['docId', 'workspaceId', 'content', 'docTitle'],
+                        },
+                    },
+                    {
+                        name: 'get_comments',
+                        description: 'Get comments for a document',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                docId: {
+                                    type: 'string',
+                                    description: 'Document ID to get comments for',
+                                },
+                                workspaceId: {
+                                    type: 'string',
+                                    description: 'Workspace ID containing the document',
+                                },
+                                limit: {
+                                    type: 'number',
+                                    description: 'Maximum number of comments to return (default: 10)',
+                                    default: 10,
+                                },
+                            },
+                            required: ['docId', 'workspaceId'],
+                        },
+                    },
+                    {
+                        name: 'resolve_comment',
+                        description: 'Resolve or unresolve a comment',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                commentId: {
+                                    type: 'string',
+                                    description: 'Comment ID to resolve/unresolve',
+                                },
+                                resolved: {
+                                    type: 'boolean',
+                                    description: 'Whether to resolve (true) or unresolve (false) the comment',
+                                },
+                            },
+                            required: ['commentId', 'resolved'],
+                        },
+                    },
+                    {
+                        name: 'delete_comment',
+                        description: 'Delete a comment',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                commentId: {
+                                    type: 'string',
+                                    description: 'Comment ID to delete',
+                                },
+                            },
+                            required: ['commentId'],
+                        },
+                    },
+                    {
+                        name: 'advanced_search',
+                        description: 'Perform advanced search with boolean queries, field filters, and aggregations',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                workspaceId: {
+                                    type: 'string',
+                                    description: 'Workspace ID to search in (uses default from AFFINE_WORKSPACE_ID if not provided)',
+                                },
+                                query: {
+                                    type: 'object',
+                                    description: 'Search query object with boolean logic',
+                                    properties: {
+                                        type: {
+                                            type: 'string',
+                                            enum: ['match', 'boolean', 'all'],
+                                            description: 'Query type'
+                                        },
+                                        match: {
+                                            type: 'string',
+                                            description: 'Text to match (for match queries)'
+                                        },
+                                        field: {
+                                            type: 'string',
+                                            description: 'Field to search in'
+                                        },
+                                        queries: {
+                                            type: 'array',
+                                            description: 'Sub-queries for boolean queries'
+                                        },
+                                        occur: {
+                                            type: 'string',
+                                            enum: ['must', 'should', 'must_not'],
+                                            description: 'Boolean query occurrence'
+                                        }
+                                    },
+                                    required: ['type']
+                                },
+                                table: {
+                                    type: 'string',
+                                    enum: ['doc', 'block'],
+                                    description: 'Table to search (default: doc)',
+                                    default: 'doc'
+                                },
+                                fields: {
+                                    type: 'array',
+                                    items: { type: 'string' },
+                                    description: 'Fields to return in results',
+                                    default: ['title', 'content', 'id']
+                                },
+                                limit: {
+                                    type: 'number',
+                                    description: 'Maximum number of results (default: 10)',
+                                    default: 10
+                                },
+                                highlights: {
+                                    type: 'array',
+                                    description: 'Fields to highlight in results',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            field: { type: 'string' },
+                                            before: { type: 'string' },
+                                            end: { type: 'string' }
+                                        }
+                                    }
+                                }
+                            },
+                            required: ['query']
+                        },
+                    },
+                    {
+                        name: 'get_document_history',
+                        description: 'Get version history for a document',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                docId: {
+                                    type: 'string',
+                                    description: 'Document ID to get history for',
+                                },
+                                workspaceId: {
+                                    type: 'string',
+                                    description: 'Workspace ID containing the document',
+                                },
+                                before: {
+                                    type: 'string',
+                                    description: 'Get history before this timestamp (ISO 8601)',
+                                },
+                                limit: {
+                                    type: 'number',
+                                    description: 'Maximum number of history entries (default: 10)',
+                                    default: 10,
+                                },
+                            },
+                            required: ['docId', 'workspaceId'],
+                        },
+                    },
+                    {
+                        name: 'list_blobs',
+                        description: 'List files/blobs in a workspace',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                workspaceId: {
+                                    type: 'string',
+                                    description: 'Workspace ID to list blobs from',
+                                },
+                            },
+                            required: ['workspaceId'],
+                        },
+                    },
+                    {
+                        name: 'delete_blob',
+                        description: 'Delete a file/blob from workspace',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                workspaceId: {
+                                    type: 'string',
+                                    description: 'Workspace ID containing the blob',
+                                },
+                                blobKey: {
+                                    type: 'string',
+                                    description: 'Blob key/ID to delete',
+                                },
+                                permanently: {
+                                    type: 'boolean',
+                                    description: 'Whether to permanently delete (default: false)',
+                                    default: false,
+                                },
+                            },
+                            required: ['workspaceId', 'blobKey'],
+                        },
+                    },
+                    {
+                        name: 'list_documents',
+                        description: 'List all documents in a workspace with detailed information',
+                        inputSchema: {
+                            type: 'object',
+                            properties: {
+                                workspaceId: {
+                                    type: 'string',
+                                    description: 'Workspace ID to list documents from (uses default from AFFINE_WORKSPACE_ID if not provided)',
+                                },
+                                limit: {
+                                    type: 'number',
+                                    description: 'Maximum number of documents to return (default: 50)',
+                                    default: 50,
+                                },
+                                cursor: {
+                                    type: 'string',
+                                    description: 'Pagination cursor for next page',
+                                },
+                            },
+                            required: [],
+                        },
+                    },
                 ],
             };
             
@@ -307,10 +600,21 @@ class AFFiNEMCPServer {
                 this.debugLog(`🔧 [${requestId}] Calling tool: ${name}`, args);
 
                 const toolHandlers = {
-                    'search_documents': () => this.searchDocuments(args.query, args.workspaceId, args.limit),
-                    'get_document': () => this.getDocument(args.docId, args.workspaceId),
+                    'search_documents': () => this.searchDocuments(args.query, args.workspaceId || this.workspaceId, args.limit),
+                    'get_document': () => this.getDocument(args.docId, args.workspaceId || this.workspaceId),
                     'list_workspaces': () => this.listWorkspaces(),
-                    'get_workspace_info': () => this.getWorkspaceInfo(args.workspaceId)
+                    'get_workspace_info': () => this.getWorkspaceInfo(args.workspaceId || this.workspaceId),
+                    'publish_document': () => this.publishDocument(args.docId, args.workspaceId || this.workspaceId, args.mode),
+                    'unpublish_document': () => this.unpublishDocument(args.docId, args.workspaceId || this.workspaceId),
+                    'create_comment': () => this.createComment(args.docId, args.workspaceId || this.workspaceId, args.content, args.docMode, args.docTitle, args.mentions),
+                    'get_comments': () => this.getComments(args.docId, args.workspaceId || this.workspaceId, args.limit),
+                    'resolve_comment': () => this.resolveComment(args.commentId, args.resolved),
+                    'delete_comment': () => this.deleteComment(args.commentId),
+                    'advanced_search': () => this.advancedSearch(args.workspaceId || this.workspaceId, args.query, args.table, args.fields, args.limit, args.highlights),
+                    'get_document_history': () => this.getDocumentHistory(args.docId, args.workspaceId || this.workspaceId, args.before, args.limit),
+                    'list_blobs': () => this.listBlobs(args.workspaceId || this.workspaceId),
+                    'delete_blob': () => this.deleteBlob(args.workspaceId || this.workspaceId, args.blobKey, args.permanently),
+                    'list_documents': () => this.listDocuments(args.workspaceId || this.workspaceId, args.limit, args.cursor)
                 };
 
                 const handler = toolHandlers[name];
@@ -616,45 +920,109 @@ class AFFiNEMCPServer {
     }
 
     async getDocument(docId, workspaceId) {
-        const query = `
-      query($workspaceId: String!, $docId: String!) {
-        workspace(id: $workspaceId) {
-          doc(docId: $docId) {
-            id
-            title
-            createdAt
-            updatedAt
-            createdBy {
-              name
-              email
+        this.debugLog(`📄 Getting document ${docId} with content in workspace ${workspaceId}`);
+        
+        // First get document metadata
+        const metaQuery = `
+            query($workspaceId: String!, $docId: String!) {
+                workspace(id: $workspaceId) {
+                    doc(docId: $docId) {
+                        id
+                        title
+                        createdAt
+                        updatedAt
+                        createdBy {
+                            id
+                            name
+                            avatarUrl
+                        }
+                        lastUpdatedBy {
+                            id
+                            name
+                            avatarUrl
+                        }
+                        mode
+                        public
+                        permissions {
+                            Doc_Read
+                            Doc_Update
+                            Doc_Delete
+                        }
+                    }
+                }
             }
-            lastUpdatedBy {
-              name
-              email
-            }
-            mode
-            public
-          }
-        }
-      }
-    `;
+        `;
 
-        const data = await this.makeGraphQLRequest(query, { workspaceId, docId });
-        const doc = data.workspace.doc;
+        const metaData = await this.makeGraphQLRequest(metaQuery, { workspaceId, docId });
+        const doc = metaData.workspace.doc;
+
+        if (!doc) {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `❌ Document not found\n\nDocument ID: ${docId}\nWorkspace ID: ${workspaceId}`,
+                    },
+                ],
+            };
+        }
+
+        // Now get document content using search API
+        const contentQuery = `
+            query($workspaceId: String!, $input: SearchInput!) {
+                workspace(id: $workspaceId) {
+                    search(input: $input) {
+                        nodes {
+                            fields
+                            highlights
+                        }
+                        pagination {
+                            count
+                            hasMore
+                        }
+                    }
+                }
+            }
+        `;
+
+        // Based on testing, AFFiNE's GraphQL API does not expose document content
+        // The search API only returns titles, not actual content
+        const docContent = `❌ Document content is not available through AFFiNE's GraphQL API.
+
+The search API only provides document titles, not content. AFFiNE likely uses:
+• WebSocket connections for real-time document editing
+• REST APIs for content access 
+• Binary protocols for performance
+
+To access document content, you would need:
+• Direct access to AFFiNE's web interface
+• Alternative APIs (if available)
+• Export functionality (if implemented)
+
+Available through this MCP server:
+• Document metadata (shown above)
+• Comments via 'get_comments'
+• Version history via 'get_document_history'  
+• Search snippets via 'search_documents'`;
+
+        // Handle title display
+        const displayTitle = doc.title || `Document ${doc.id.substring(0, 8)}`;
 
         return {
             content: [
                 {
                     type: 'text',
-                    text: `**Document: ${doc.title}**\n\n` +
-                        `**ID:** ${doc.id}\n` +
-                        `**Created:** ${new Date(doc.createdAt).toLocaleString()}\n` +
-                        `**Updated:** ${new Date(doc.updatedAt).toLocaleString()}\n` +
-                        `**Created by:** ${doc.createdBy?.name || 'Unknown'}\n` +
-                        `**Last updated by:** ${doc.lastUpdatedBy?.name || 'Unknown'}\n` +
-                        `**Mode:** ${doc.mode}\n` +
-                        `**Public:** ${doc.public ? 'Yes' : 'No'}\n\n` +
-                        `*Note: Document content access may require additional API endpoints.*`,
+                    text: `📄 ${displayTitle}\n\n` +
+                        `ID: ${doc.id}\n` +
+                        `Mode: ${doc.mode}\n` +
+                        `Public: ${doc.public ? 'Yes' : 'No'}\n` +
+                        `Created: ${new Date(doc.createdAt).toLocaleString()}\n` +
+                        `Updated: ${new Date(doc.updatedAt).toLocaleString()}\n` +
+                        `Created by: ${doc.createdBy?.name || 'Unknown'}\n` +
+                        `Last updated by: ${doc.lastUpdatedBy?.name || 'Unknown'}\n` +
+                        `Permissions: Read: ${doc.permissions?.Doc_Read ? '✅' : '❌'}, Update: ${doc.permissions?.Doc_Update ? '✅' : '❌'}, Delete: ${doc.permissions?.Doc_Delete ? '✅' : '❌'}\n` +
+                        `Title set: ${doc.title ? 'Yes' : 'No (common in AFFiNE)'}\n\n` +
+                        `--- DOCUMENT CONTENT ---\n\n${docContent}`,
                 },
             ],
         };
@@ -716,6 +1084,733 @@ class AFFiNEMCPServer {
                 },
             ],
         };
+    }
+
+    async publishDocument(docId, workspaceId, mode = 'Page') {
+        this.debugLog(`📝 Publishing document ${docId} in workspace ${workspaceId} with mode ${mode}`);
+        
+        const mutation = `
+            mutation($docId: String!, $workspaceId: String!, $mode: PublicDocMode!) {
+                publishDoc(docId: $docId, workspaceId: $workspaceId, mode: $mode) {
+                    id
+                    title
+                    public
+                    mode
+                    permissions {
+                        Doc_Read
+                        Doc_Update
+                    }
+                }
+            }
+        `;
+
+        try {
+            const data = await this.makeGraphQLRequest(mutation, { 
+                docId, 
+                workspaceId, 
+                mode 
+            });
+            
+            const doc = data.publishDoc;
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `✅ **Document "${doc.title}" published successfully**\n\n` +
+                            `**Document ID:** ${doc.id}\n` +
+                            `**Mode:** ${doc.mode}\n` +
+                            `**Public:** ${doc.public ? 'Yes' : 'No'}\n` +
+                            `**Permissions:** Read: ${doc.permissions.Doc_Read ? 'Yes' : 'No'}, Update: ${doc.permissions.Doc_Update ? 'Yes' : 'No'}\n\n` +
+                            `The document is now publicly accessible.`,
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to publish document:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to publish document: ${error.message}`
+            );
+        }
+    }
+
+    async unpublishDocument(docId, workspaceId) {
+        this.debugLog(`🔒 Unpublishing document ${docId} in workspace ${workspaceId}`);
+        
+        const mutation = `
+            mutation($docId: String!, $workspaceId: String!) {
+                revokePublicDoc(docId: $docId, workspaceId: $workspaceId) {
+                    id
+                    title
+                    public
+                    permissions {
+                        Doc_Read
+                        Doc_Update
+                    }
+                }
+            }
+        `;
+
+        try {
+            const data = await this.makeGraphQLRequest(mutation, { 
+                docId, 
+                workspaceId 
+            });
+            
+            const doc = data.revokePublicDoc;
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `🔒 **Document "${doc.title}" unpublished successfully**\n\n` +
+                            `**Document ID:** ${doc.id}\n` +
+                            `**Public:** ${doc.public ? 'Yes' : 'No'}\n` +
+                            `**Permissions:** Read: ${doc.permissions.Doc_Read ? 'Yes' : 'No'}, Update: ${doc.permissions.Doc_Update ? 'Yes' : 'No'}\n\n` +
+                            `The document is no longer publicly accessible.`,
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to unpublish document:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to unpublish document: ${error.message}`
+            );
+        }
+    }
+
+    async createComment(docId, workspaceId, content, docMode = 'page', docTitle, mentions = []) {
+        this.debugLog(`💬 Creating comment on document ${docId} in workspace ${workspaceId}`);
+        
+        const mutation = `
+            mutation($input: CommentCreateInput!) {
+                createComment(input: $input) {
+                    id
+                    content
+                    createdAt
+                    resolved
+                    user {
+                        id
+                        name
+                        avatarUrl
+                    }
+                    replies {
+                        id
+                        content
+                        createdAt
+                        user {
+                            id
+                            name
+                            avatarUrl
+                        }
+                    }
+                }
+            }
+        `;
+
+        try {
+            const data = await this.makeGraphQLRequest(mutation, {
+                input: {
+                    docId,
+                    workspaceId,
+                    content,
+                    docMode,
+                    docTitle,
+                    mentions: mentions || []
+                }
+            });
+            
+            const comment = data.createComment;
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `💬 **Comment created successfully**\n\n` +
+                            `**Comment ID:** ${comment.id}\n` +
+                            `**Author:** ${comment.user.name}\n` +
+                            `**Created:** ${new Date(comment.createdAt).toLocaleString()}\n` +
+                            `**Resolved:** ${comment.resolved ? 'Yes' : 'No'}\n` +
+                            `**Replies:** ${comment.replies.length}\n\n` +
+                            `**Content:** ${JSON.stringify(comment.content, null, 2)}`,
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to create comment:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to create comment: ${error.message}`
+            );
+        }
+    }
+
+    async getComments(docId, workspaceId, limit = 10) {
+        this.debugLog(`📋 Getting comments for document ${docId} in workspace ${workspaceId}`);
+        
+        const query = `
+            query($workspaceId: String!, $docId: String!, $pagination: PaginationInput) {
+                workspace(id: $workspaceId) {
+                    comments(docId: $docId, pagination: $pagination) {
+                        edges {
+                            node {
+                                id
+                                content
+                                createdAt
+                                updatedAt
+                                resolved
+                                user {
+                                    id
+                                    name
+                                    avatarUrl
+                                }
+                                replies {
+                                    id
+                                    content
+                                    createdAt
+                                    user {
+                                        id
+                                        name
+                                        avatarUrl
+                                    }
+                                }
+                            }
+                        }
+                        totalCount
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                    }
+                }
+            }
+        `;
+
+        try {
+            const data = await this.makeGraphQLRequest(query, {
+                workspaceId,
+                docId,
+                pagination: {
+                    first: limit
+                }
+            });
+            
+            const comments = data.workspace.comments;
+            const commentList = comments.edges.map(edge => edge.node);
+            
+            if (commentList.length === 0) {
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: `📋 **No comments found for this document**\n\nDocument ID: ${docId}`,
+                        },
+                    ],
+                };
+            }
+
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `📋 **Comments for Document (${comments.totalCount} total)**\n\n` +
+                            commentList.map(comment => 
+                                `**Comment ${comment.id}** by ${comment.user.name}\n` +
+                                `Created: ${new Date(comment.createdAt).toLocaleString()}\n` +
+                                `Status: ${comment.resolved ? '✅ Resolved' : '🔄 Open'}\n` +
+                                `Replies: ${comment.replies.length}\n` +
+                                `Content: ${JSON.stringify(comment.content)}\n`
+                            ).join('\n---\n\n'),
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to get comments:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to get comments: ${error.message}`
+            );
+        }
+    }
+
+    async resolveComment(commentId, resolved) {
+        this.debugLog(`${resolved ? '✅' : '🔄'} ${resolved ? 'Resolving' : 'Unresolving'} comment ${commentId}`);
+        
+        const mutation = `
+            mutation($input: CommentResolveInput!) {
+                resolveComment(input: $input)
+            }
+        `;
+
+        try {
+            const data = await this.makeGraphQLRequest(mutation, {
+                input: {
+                    id: commentId,
+                    resolved
+                }
+            });
+            
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `${resolved ? '✅' : '🔄'} **Comment ${resolved ? 'resolved' : 'unresolved'} successfully**\n\n` +
+                            `**Comment ID:** ${commentId}\n` +
+                            `**Status:** ${resolved ? 'Resolved' : 'Open'}`,
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to ${resolved ? 'resolve' : 'unresolve'} comment:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to ${resolved ? 'resolve' : 'unresolve'} comment: ${error.message}`
+            );
+        }
+    }
+
+    async deleteComment(commentId) {
+        this.debugLog(`🗑️ Deleting comment ${commentId}`);
+        
+        const mutation = `
+            mutation($id: String!) {
+                deleteComment(id: $id)
+            }
+        `;
+
+        try {
+            const data = await this.makeGraphQLRequest(mutation, {
+                id: commentId
+            });
+            
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `🗑️ **Comment deleted successfully**\n\n` +
+                            `**Comment ID:** ${commentId}\n` +
+                            `The comment has been permanently removed.`,
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to delete comment:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to delete comment: ${error.message}`
+            );
+        }
+    }
+
+    async advancedSearch(workspaceId, query, table = 'doc', fields = ['title', 'content', 'id'], limit = 10, highlights = []) {
+        this.debugLog(`🔍 Performing advanced search in workspace ${workspaceId}`, { query, table, fields, limit });
+        
+        const searchQuery = `
+            query($workspaceId: String!, $input: SearchInput!) {
+                workspace(id: $workspaceId) {
+                    search(input: $input) {
+                        nodes {
+                            fields
+                            highlights
+                        }
+                        pagination {
+                            count
+                            hasMore
+                            nextCursor
+                        }
+                    }
+                }
+            }
+        `;
+
+        try {
+            const searchInput = {
+                query,
+                table,
+                options: {
+                    fields,
+                    pagination: {
+                        limit
+                    }
+                }
+            };
+
+            // Add highlights if provided
+            if (highlights && highlights.length > 0) {
+                searchInput.options.highlights = highlights;
+            }
+
+            const data = await this.makeGraphQLRequest(searchQuery, {
+                workspaceId,
+                input: searchInput
+            });
+            
+            const searchResults = data.workspace.search;
+            const results = searchResults.nodes;
+            
+            if (results.length === 0) {
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: `🔍 **No results found**\n\nQuery: ${JSON.stringify(query, null, 2)}\nTable: ${table}\nFields: ${fields.join(', ')}`,
+                        },
+                    ],
+                };
+            }
+
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `🔍 **Advanced Search Results (${searchResults.pagination.count} found)**\n\n` +
+                            `**Query:** ${JSON.stringify(query, null, 2)}\n` +
+                            `**Table:** ${table}\n` +
+                            `**Fields:** ${fields.join(', ')}\n\n` +
+                            `**Results:**\n\n` +
+                            results.map((result, index) => {
+                                let resultText = `**Result ${index + 1}:**\n`;
+                                
+                                // Display fields
+                                if (result.fields) {
+                                    Object.entries(result.fields).forEach(([key, value]) => {
+                                        resultText += `• **${key}:** ${value}\n`;
+                                    });
+                                }
+                                
+                                // Display highlights if available
+                                if (result.highlights && Object.keys(result.highlights).length > 0) {
+                                    resultText += `• **Highlights:**\n`;
+                                    Object.entries(result.highlights).forEach(([key, value]) => {
+                                        resultText += `  - ${key}: ${value}\n`;
+                                    });
+                                }
+                                
+                                return resultText;
+                            }).join('\n---\n\n') +
+                            `\n**Pagination:** ${searchResults.pagination.hasMore ? 'More results available' : 'All results shown'}`,
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Advanced search failed:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Advanced search failed: ${error.message}`
+            );
+        }
+    }
+
+    async getDocumentHistory(docId, workspaceId, before = null, limit = 10) {
+        this.debugLog(`📜 Getting document history for ${docId} in workspace ${workspaceId}`);
+        
+        const query = `
+            query($workspaceId: String!, $guid: String!, $before: DateTime, $take: Int) {
+                workspace(id: $workspaceId) {
+                    histories(guid: $guid, before: $before, take: $take) {
+                        id
+                        timestamp
+                        editor {
+                            name
+                            avatarUrl
+                        }
+                        workspaceId
+                    }
+                }
+            }
+        `;
+
+        try {
+            const variables = {
+                workspaceId,
+                guid: docId,
+                take: limit
+            };
+
+            if (before) {
+                variables.before = before;
+            }
+
+            const data = await this.makeGraphQLRequest(query, variables);
+            
+            const histories = data.workspace.histories;
+            
+            if (!histories || histories.length === 0) {
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: `📜 **No history found for document**\n\nDocument ID: ${docId}\nWorkspace ID: ${workspaceId}`,
+                        },
+                    ],
+                };
+            }
+
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `📜 **Document History (${histories.length} entries)**\n\n` +
+                            `**Document ID:** ${docId}\n` +
+                            `**Workspace ID:** ${workspaceId}\n\n` +
+                            `**History Entries:**\n\n` +
+                            histories.map((history, index) => {
+                                const timestamp = new Date(history.timestamp).toLocaleString();
+                                const editor = history.editor ? history.editor.name : 'Unknown';
+                                
+                                return `**${index + 1}. Version ${history.id}**\n` +
+                                    `• **Timestamp:** ${timestamp}\n` +
+                                    `• **Editor:** ${editor}\n` +
+                                    `• **Workspace:** ${history.workspaceId}`;
+                            }).join('\n\n---\n\n'),
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to get document history:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to get document history: ${error.message}`
+            );
+        }
+    }
+
+    async listBlobs(workspaceId) {
+        this.debugLog(`📁 Listing blobs in workspace ${workspaceId}`);
+        
+        const query = `
+            query($workspaceId: String!) {
+                workspace(id: $workspaceId) {
+                    blobs {
+                        key
+                        mime
+                        size
+                        createdAt
+                    }
+                    blobsSize
+                }
+            }
+        `;
+
+        try {
+            const data = await this.makeGraphQLRequest(query, { workspaceId });
+            
+            const workspace = data.workspace;
+            const blobs = workspace.blobs;
+            
+            if (!blobs || blobs.length === 0) {
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: `📁 **No files found in workspace**\n\nWorkspace ID: ${workspaceId}\nTotal size: ${workspace.blobsSize} bytes`,
+                        },
+                    ],
+                };
+            }
+
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `📁 **Files in Workspace (${blobs.length} files)**\n\n` +
+                            `**Workspace ID:** ${workspaceId}\n` +
+                            `**Total Size:** ${this.formatFileSize(workspace.blobsSize)}\n\n` +
+                            `**Files:**\n\n` +
+                            blobs.map((blob, index) => {
+                                const createdDate = new Date(blob.createdAt).toLocaleString();
+                                const fileSize = this.formatFileSize(blob.size);
+                                
+                                return `**${index + 1}. ${blob.key}**\n` +
+                                    `• **Type:** ${blob.mime}\n` +
+                                    `• **Size:** ${fileSize}\n` +
+                                    `• **Created:** ${createdDate}`;
+                            }).join('\n\n---\n\n'),
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to list blobs:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to list blobs: ${error.message}`
+            );
+        }
+    }
+
+    async deleteBlob(workspaceId, blobKey, permanently = false) {
+        this.debugLog(`🗑️ Deleting blob ${blobKey} from workspace ${workspaceId} (permanently: ${permanently})`);
+        
+        const mutation = `
+            mutation($workspaceId: String!, $key: String, $permanently: Boolean!) {
+                deleteBlob(workspaceId: $workspaceId, key: $key, permanently: $permanently)
+            }
+        `;
+
+        try {
+            const data = await this.makeGraphQLRequest(mutation, {
+                workspaceId,
+                key: blobKey,
+                permanently
+            });
+            
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `🗑️ **File deleted successfully**\n\n` +
+                            `**File Key:** ${blobKey}\n` +
+                            `**Workspace ID:** ${workspaceId}\n` +
+                            `**Permanently Deleted:** ${permanently ? 'Yes' : 'No'}\n\n` +
+                            `${permanently ? 'The file has been permanently removed and cannot be recovered.' : 'The file has been moved to trash and can be recovered.'}`,
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to delete blob:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to delete blob: ${error.message}`
+            );
+        }
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    async listDocuments(workspaceId, limit = 50, cursor = null) {
+        this.debugLog(`📄 Listing documents in workspace ${workspaceId} (limit: ${limit})`);
+        
+        const query = `
+            query($workspaceId: String!, $pagination: PaginationInput!) {
+                workspace(id: $workspaceId) {
+                    docs(pagination: $pagination) {
+                        edges {
+                            cursor
+                            node {
+                                id
+                                title
+                                createdAt
+                                updatedAt
+                                public
+                                mode
+                                summary
+                                createdBy {
+                                    id
+                                    name
+                                    avatarUrl
+                                }
+                                lastUpdatedBy {
+                                    id
+                                    name
+                                    avatarUrl
+                                }
+                                permissions {
+                                    Doc_Read
+                                    Doc_Update
+                                    Doc_Delete
+                                }
+                                meta {
+                                    createdAt
+                                    updatedAt
+                                    createdBy {
+                                        name
+                                    }
+                                    updatedBy {
+                                        name
+                                    }
+                                }
+                            }
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                        totalCount
+                    }
+                }
+            }
+        `;
+
+        try {
+            const pagination = {
+                first: limit
+            };
+
+            if (cursor) {
+                pagination.after = cursor;
+            }
+
+            const data = await this.makeGraphQLRequest(query, {
+                workspaceId,
+                pagination
+            });
+            
+            const docsResult = data.workspace.docs;
+            const documents = docsResult.edges.map(edge => edge.node);
+            
+            if (documents.length === 0) {
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: `📄 **No documents found in workspace**\n\nWorkspace ID: ${workspaceId}`,
+                        },
+                    ],
+                };
+            }
+
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `📄 Documents in Workspace (${docsResult.totalCount} total, showing ${documents.length})\n\n` +
+                            `Workspace ID: ${workspaceId}\n` +
+                            `Pagination: ${docsResult.pageInfo.hasNextPage ? 'More available' : 'All shown'}\n\n` +
+                            documents.map((doc, index) => {
+                                const createdDate = new Date(doc.createdAt || doc.meta?.createdAt).toLocaleString();
+                                const updatedDate = new Date(doc.updatedAt || doc.meta?.updatedAt).toLocaleString();
+                                const creator = doc.createdBy?.name || doc.meta?.createdBy?.name || 'Unknown';
+                                const lastEditor = doc.lastUpdatedBy?.name || doc.meta?.updatedBy?.name || 'Unknown';
+                                
+                                // Handle title - AFFiNE documents often have null titles
+                                let displayTitle;
+                                if (doc.title === null || doc.title === undefined) {
+                                    displayTitle = `Document ${doc.id.substring(0, 8)}`;
+                                } else if (doc.title.trim() === '') {
+                                    displayTitle = `Document ${doc.id.substring(0, 8)} (Empty Title)`;
+                                } else {
+                                    displayTitle = doc.title;
+                                }
+                                
+                                return `${index + 1}. ${displayTitle}\n` +
+                                    `   • ID: ${doc.id}\n` +
+                                    `   • Mode: ${doc.mode}\n` +
+                                    `   • Public: ${doc.public ? 'Yes' : 'No'}\n` +
+                                    `   • Created: ${createdDate} by ${creator}\n` +
+                                    `   • Updated: ${updatedDate} by ${lastEditor}\n` +
+                                    `   • Permissions: Read: ${doc.permissions.Doc_Read ? '✅' : '❌'}, Update: ${doc.permissions.Doc_Update ? '✅' : '❌'}, Delete: ${doc.permissions.Doc_Delete ? '✅' : '❌'}\n` +
+                                    (doc.summary ? `   • Summary: ${doc.summary}\n` : '') +
+                                    `   • Note: ${doc.title ? 'Has title' : 'No title set (common in AFFiNE)'}`;
+                            }).join('\n\n') +
+                            (docsResult.pageInfo.hasNextPage ? 
+                                `\n\nNext Page Cursor: ${docsResult.pageInfo.endCursor}` : ''),
+                    },
+                ],
+            };
+        } catch (error) {
+            this.debugLog(`❌ Failed to list documents:`, error);
+            throw new McpError(
+                ErrorCode.InternalError,
+                `Failed to list documents: ${error.message}`
+            );
+        }
     }
 
     async testConnectivity() {

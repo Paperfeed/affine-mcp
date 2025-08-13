@@ -7,7 +7,8 @@
     "affine-mcp": "index.js"
   },
   "scripts": {
-    "start": "bun index.js"
+    "start": "bun index.js",
+    "inspect": "infisical run -- sh -c 'bunx @modelcontextprotocol/inspector -e DEBUG=true -e AFFINE_API_URL=$AFFINE_API_URL -e AFFINE_ACCESS_TOKEN=$AFFINE_ACCESS_TOKEN -e AFFINE_WORKSPACE_ID=$AFFINE_WORKSPACE_ID bun index.js'"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.2"
